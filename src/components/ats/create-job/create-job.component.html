@@ -1,0 +1,129 @@
+<div class="max-w-4xl mx-auto space-y-6">
+  <header>
+    <a routerLink="/jobs" class="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 mb-2">
+      <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+      Back to Jobs
+    </a>
+    <h1 class="text-3xl font-bold text-gray-800">Create New Job</h1>
+    <p class="mt-1 text-gray-500">Fill in the details to create a new job posting.</p>
+  </header>
+
+  <form (ngSubmit)="saveJob('Published')" #jobForm="ngForm" class="space-y-6">
+    <!-- Basic Information -->
+    <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
+      <h2 class="text-lg font-semibold text-gray-800">Basic Information</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+        <div>
+          <label for="jobTitle" class="block text-sm font-medium text-gray-700">Job Title *</label>
+          <input type="text" id="jobTitle" name="jobTitle" required placeholder="e.g., Senior Software Engineer" 
+                 [ngModel]="newJob().title" (ngModelChange)="updateJobField('title', $event)"
+                 class="block w-full px-3 py-2 mt-1 bg-slate-50 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+        <div>
+          <label for="department" class="block text-sm font-medium text-gray-700">Department *</label>
+          <select id="department" name="department" required 
+                  [ngModel]="newJob().department" (ngModelChange)="updateJobField('department', $event)"
+                  class="block w-full px-3 py-2 mt-1 bg-slate-50 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option value="" disabled>Select department</option>
+            @for(dept of departments; track dept) { <option [value]="dept">{{dept}}</option> }
+          </select>
+        </div>
+        <div>
+          <label for="location" class="block text-sm font-medium text-gray-700">Location *</label>
+          <input type="text" id="location" name="location" required placeholder="e.g., Remote, New York, etc."
+                 [ngModel]="newJob().location" (ngModelChange)="updateJobField('location', $event)"
+                 class="block w-full px-3 py-2 mt-1 bg-slate-50 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        </div>
+        <div>
+          <label for="experience" class="block text-sm font-medium text-gray-700">Experience Required *</label>
+          <select id="experience" name="experience" required
+                  [ngModel]="newJob().experience" (ngModelChange)="updateJobField('experience', $event)"
+                  class="block w-full px-3 py-2 mt-1 bg-slate-50 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option value="" disabled>Select experience</option>
+            @for(level of experienceLevels; track level) { <option [value]="level">{{level}}</option> }
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Compensation -->
+    <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
+        <h2 class="text-lg font-semibold text-gray-800">Compensation</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+             <div>
+                <label for="minSalary" class="block text-sm font-medium text-gray-700">Minimum Salary</label>
+                <input type="number" id="minSalary" name="minSalary" placeholder="e.g., 80000"
+                        [ngModel]="newJob().salaryMin" (ngModelChange)="updateNumericJobField('salaryMin', $event)"
+                        class="block w-full px-3 py-2 mt-1 bg-slate-50 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+             <div>
+                <label for="maxSalary" class="block text-sm font-medium text-gray-700">Maximum Salary</label>
+                <input type="number" id="maxSalary" name="maxSalary" placeholder="e.g., 120000"
+                        [ngModel]="newJob().salaryMax" (ngModelChange)="updateNumericJobField('salaryMax', $event)"
+                        class="block w-full px-3 py-2 mt-1 bg-slate-50 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+             <div>
+                <label for="currency" class="block text-sm font-medium text-gray-700">Currency</label>
+                <select id="currency" name="currency"
+                        [ngModel]="newJob().currency" (ngModelChange)="updateJobField('currency', $event)"
+                        class="block w-full px-3 py-2 mt-1 bg-slate-50 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                    @for(currency of currencies; track currency) { <option [value]="currency">{{currency}}</option> }
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skills & Requirements -->
+    <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
+      <h2 class="text-lg font-semibold text-gray-800">Skills & Requirements</h2>
+      <div class="flex items-center mt-4">
+        <input type="text" placeholder="Add a skill or requirement" 
+               [ngModel]="skillsInput()" (ngModelChange)="skillsInput.set($event)" name="skillsInput"
+               (keydown.enter)="addSkill(); $event.preventDefault()"
+               class="flex-grow block w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-l-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+        <button type="button" (click)="addSkill()" class="px-4 py-2 text-white bg-slate-700 border border-slate-700 rounded-r-md hover:bg-slate-800">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+        </button>
+      </div>
+      <div class="flex flex-wrap gap-2 mt-4">
+        @for(skill of newJob().skills; track skill) {
+          <span class="flex items-center px-2 py-1 text-sm text-blue-800 bg-blue-100 rounded-md">
+            {{skill}}
+            <button type="button" (click)="removeSkill(skill)" class="ml-2 font-bold text-blue-600 hover:text-blue-800">&times;</button>
+          </span>
+        }
+      </div>
+    </div>
+
+    <!-- Job Description -->
+     <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
+      <h2 class="text-lg font-semibold text-gray-800">Job Description</h2>
+      <textarea id="description" name="description" rows="6"
+                [ngModel]="newJob().description" (ngModelChange)="updateJobField('description', $event)"
+                placeholder="Describe the role, responsibilities, and what makes this opportunity exciting..."
+                class="block w-full px-3 py-2 mt-4 bg-slate-50 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"></textarea>
+    </div>
+
+    <!-- Posting Options -->
+    <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
+      <h2 class="text-lg font-semibold text-gray-800">Posting Options</h2>
+      <div class="mt-4">
+        <label for="postType" class="block text-sm font-medium text-gray-700">Post Type</label>
+        <select id="postType" name="postType"
+                [ngModel]="newJob().postType" (ngModelChange)="updateJobField('postType', $event)"
+                class="block w-full max-w-xs px-3 py-2 mt-1 bg-slate-50 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+          <option value="External">External Only</option>
+          <option value="Internal">Internal Only</option>
+          <option value="Both">Both</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center justify-end pt-4 space-x-3">
+        <button type="button" (click)="cancel()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">Cancel</button>
+        <button type="button" (click)="saveJob('Draft')" class="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-200 border border-transparent rounded-md shadow-sm hover:bg-slate-300">Save as Draft</button>
+        <button type="submit" [disabled]="jobForm.invalid" class="px-4 py-2 text-sm font-medium text-white bg-slate-800 border border-transparent rounded-md shadow-sm hover:bg-slate-900 disabled:opacity-50 disabled:cursor-not-allowed">Publish Job</button>
+    </div>
+  </form>
+</div>

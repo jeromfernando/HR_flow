@@ -1,0 +1,576 @@
+<div class="space-y-6">
+  @if(viewMode() === 'list') {
+    <!-- Content -->
+    @if(activeTab() === 'onboarding') {
+      <div class="space-y-6">
+          <header class="flex items-center justify-between">
+              <div>
+                  <h1 class="text-3xl font-bold text-gray-800">Onboarding</h1>
+                  <p class="mt-1 text-gray-500">Manage new employee onboarding processes</p>
+              </div>
+              <button (click)="openOnboardingModal()" class="flex items-center px-4 py-2 text-sm font-medium text-white bg-slate-800 rounded-lg shadow-sm hover:bg-slate-900">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                  Start Onboarding
+              </button>
+          </header>
+
+          <!-- Stats Cards -->
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
+              <div class="p-5 bg-white rounded-lg shadow-sm border border-slate-200">
+                  <div class="flex items-center justify-between">
+                      <div>
+                          <p class="text-sm font-medium text-gray-500">In Progress</p>
+                          <p class="text-3xl font-bold text-gray-800">{{ inProgressCount() }}</p>
+                      </div>
+                      <div class="flex items-center justify-center w-12 h-12 text-yellow-500 bg-yellow-100 rounded-full">
+                          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                      </div>
+                  </div>
+              </div>
+              <div class="p-5 bg-white rounded-lg shadow-sm border border-slate-200">
+                  <div class="flex items-center justify-between">
+                      <div>
+                          <p class="text-sm font-medium text-gray-500">Completed This Month</p>
+                          <p class="text-3xl font-bold text-gray-800">{{ completedCount() }}</p>
+                      </div>
+                      <div class="flex items-center justify-center w-12 h-12 text-green-500 bg-green-100 rounded-full">
+                          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                      </div>
+                  </div>
+              </div>
+              <div class="p-5 bg-white rounded-lg shadow-sm border border-slate-200">
+                  <div class="flex items-center justify-between">
+                      <div>
+                          <p class="text-sm font-medium text-gray-500">Pending Tasks</p>
+                          <p class="text-3xl font-bold text-gray-800">{{ pendingTasksCount() }}</p>
+                      </div>
+                      <div class="flex items-center justify-center w-12 h-12 text-red-500 bg-red-100 rounded-full">
+                          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          
+          <!-- Search and List -->
+          <div class="p-4 bg-white rounded-lg shadow-sm border border-slate-200">
+              <div class="relative">
+                  <svg class="absolute w-5 h-5 text-slate-400 left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                  <input type="text" placeholder="Search employees..." 
+                      [ngModel]="onboardingSearchTerm()" (ngModelChange)="onboardingSearchTerm.set($event)"
+                      class="w-full py-2 pl-10 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+          </div>
+
+          <div class="space-y-4">
+              @for(process of filteredOnboardingProcesses(); track process.id) {
+                  @let status = getOnboardingStatus(process);
+                  <div class="p-5 bg-white border border-gray-200 rounded-lg shadow-sm">
+                      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                          <div class="flex items-center col-span-1">
+                              <img [src]="process.avatar" class="w-12 h-12 rounded-full" [alt]="process.employeeName">
+                              <div class="ml-4">
+                                  <p class="font-semibold text-gray-800">{{ process.employeeName }}</p>
+                                  <p class="text-sm text-gray-500">{{ process.department }}</p>
+                              </div>
+                          </div>
+                          <div class="col-span-1 text-sm text-gray-600">
+                              <p><span class="font-medium text-gray-500">Start Date:</span> {{ process.startDate }}</p>
+                              <p><span class="font-medium text-gray-500">Email:</span> {{ process.email }}</p>
+                          </div>
+                          <div class="flex items-center justify-end space-x-3 col-span-1">
+                              <span [class]="'px-3 py-1 text-xs font-semibold rounded-full ' + 
+                                  (status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
+                                  status === 'Not Started' ? 'bg-slate-100 text-slate-800' : 
+                                  'bg-green-100 text-green-800')">{{ status }}</span>
+                              <button (click)="sendWelcomeEmail(process)" class="flex items-center px-3 py-2 text-sm text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50">
+                                  <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                  Send Welcome Email
+                              </button>
+                              <button (click)="viewTasks(process)" class="px-3 py-2 text-sm text-slate-700 bg-slate-100 border border-slate-300 rounded-md hover:bg-slate-200">View Tasks</button>
+                          </div>
+                      </div>
+                      <div class="mt-4">
+                          <div class="flex justify-between mb-1">
+                              <span class="text-sm font-medium text-gray-700">Progress</span>
+                              <span class="text-sm font-medium text-gray-700">{{ getTaskProgress(process).toFixed(0) }}%</span>
+                          </div>
+                          <div class="w-full bg-gray-200 rounded-full h-2">
+                              <div class="bg-blue-600 h-2 rounded-full" [style.width.%]="getTaskProgress(process)"></div>
+                          </div>
+                          <p class="text-xs text-right text-gray-500 mt-1">{{ getCompletedTasksCount(process) }} / {{ process.tasks.length }} tasks completed</p>
+                      </div>
+                  </div>
+              }
+          </div>
+      </div>
+    } @else {
+      <div class="space-y-6">
+          <header class="flex items-center justify-between">
+              <div>
+                  <h1 class="text-3xl font-bold text-gray-800">Offboarding</h1>
+                  <p class="mt-1 text-gray-500">Manage employee offboarding and exit processes</p>
+              </div>
+              <button (click)="openOffboardingModal()" class="flex items-center px-4 py-2 text-sm font-medium text-white bg-slate-800 rounded-lg shadow-sm hover:bg-slate-900">
+                  <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                  Start Offboarding
+              </button>
+          </header>
+
+          <!-- Stats Cards -->
+          <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
+              <div class="p-5 bg-white rounded-lg shadow-sm border border-slate-200">
+                  <div class="flex items-center justify-between">
+                      <div>
+                          <p class="text-sm font-medium text-gray-500">In Progress</p>
+                          <p class="text-3xl font-bold text-gray-800">{{ offboardingInProgressCount() }}</p>
+                      </div>
+                      <div class="flex items-center justify-center w-12 h-12 text-yellow-500 bg-yellow-100 rounded-full">
+                          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                      </div>
+                  </div>
+              </div>
+              <div class="p-5 bg-white rounded-lg shadow-sm border border-slate-200">
+                  <div class="flex items-center justify-between">
+                      <div>
+                          <p class="text-sm font-medium text-gray-500">Completed</p>
+                          <p class="text-3xl font-bold text-gray-800">{{ offboardingCompletedCount() }}</p>
+                      </div>
+                      <div class="flex items-center justify-center w-12 h-12 text-green-500 bg-green-100 rounded-full">
+                          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                      </div>
+                  </div>
+              </div>
+              <div class="p-5 bg-white rounded-lg shadow-sm border border-slate-200">
+                  <div class="flex items-center justify-between">
+                      <div>
+                          <p class="text-sm font-medium text-gray-500">Pending Exit Interviews</p>
+                          <p class="text-3xl font-bold text-gray-800">{{ pendingExitInterviewsCount() }}</p>
+                      </div>
+                      <div class="flex items-center justify-center w-12 h-12 text-red-500 bg-red-100 rounded-full">
+                          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                      </div>
+                  </div>
+              </div>
+          </div>
+          
+          <!-- Search and List -->
+          <div class="p-4 bg-white rounded-lg shadow-sm border border-slate-200">
+              <div class="relative">
+                  <svg class="absolute w-5 h-5 text-slate-400 left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                  <input type="text" placeholder="Search employees..." 
+                      [ngModel]="offboardingSearchTerm()" (ngModelChange)="offboardingSearchTerm.set($event)"
+                      class="w-full py-2 pl-10 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+              </div>
+          </div>
+
+          <div class="space-y-4">
+              @for(process of filteredOffboardingProcesses(); track process.id) {
+                <div class="p-5 bg-white border border-gray-200 rounded-lg shadow-sm">
+                  <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                    <div class="flex items-center col-span-1">
+                      <img [src]="process.avatar" class="w-12 h-12 rounded-full" [alt]="process.employeeName">
+                      <div class="ml-4">
+                        <p class="font-semibold text-gray-800">{{ process.employeeName }}</p>
+                        <p class="text-sm text-gray-500">{{ process.department }}</p>
+                        <p class="text-xs text-gray-500 mt-1">Last Day: {{ process.lastDay }} | {{ process.email }}</p>
+                      </div>
+                    </div>
+                    
+                    <div class="p-4 rounded-lg bg-slate-50 border border-slate-200 col-span-1">
+                      <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p class="text-gray-500">Exit Interview</p>
+                          @if(process.exitInterviewScheduled && process.exitInterviewDate) {
+                            <p class="font-medium text-green-700">Scheduled: {{ process.exitInterviewDate }}</p>
+                          } @else {
+                            <p class="font-medium text-yellow-700">Pending</p>
+                          }
+                        </div>
+                        <div>
+                          <p class="text-gray-500">Assets Returned</p>
+                          <p class="font-medium text-gray-800">{{ process.assetReturnStatus }}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center justify-end space-x-3 col-span-1">
+                      <span class="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">{{ process.status }}</span>
+                      <div class="flex flex-col space-y-2">
+                        <button (click)="scheduleExitInterview(process)" [disabled]="process.exitInterviewScheduled" class="flex items-center justify-center px-3 py-2 text-sm text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                          Schedule Exit Interview
+                        </button>
+                        <button (click)="sendExitEmail(process)" class="flex items-center justify-center px-3 py-2 text-sm text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50">
+                          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                          Send Exit Email
+                        </button>
+                        <button (click)="viewOffboardingTasks(process)" class="flex items-center justify-center px-3 py-2 text-sm text-slate-700 bg-slate-100 border border-slate-300 rounded-md hover:bg-slate-200">View Tasks</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mt-4">
+                    <div class="flex justify-between mb-1">
+                        <span class="text-sm font-medium text-gray-700">Progress</span>
+                        <span class="text-sm font-medium text-gray-700">{{ process.progress }}%</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-600 h-2 rounded-full" [style.width.%]="process.progress"></div>
+                    </div>
+                  </div>
+                </div>
+              }
+          </div>
+      </div>
+    }
+  } @else {
+    @if (activeTab() === 'onboarding' && selectedOnboardingProcess(); as process) {
+      <div class="space-y-6">
+        <header>
+            <button (click)="goBackToList()" class="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 mb-4">
+                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Back
+            </button>
+            <h1 class="text-3xl font-bold text-gray-800">Onboarding Tasks</h1>
+            <p class="mt-1 text-gray-500">{{ process.employeeName }} - {{ process.department }}</p>
+        </header>
+
+        <div class="p-5 bg-white rounded-lg shadow-sm border border-slate-200">
+             <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <img [src]="process.avatar" class="w-16 h-16 rounded-full" [alt]="process.employeeName">
+                    <div class="ml-4">
+                        <p class="text-xl font-semibold text-gray-800">{{ process.employeeName }}</p>
+                        <p class="text-sm text-gray-500">{{ process.email }}</p>
+                        <p class="text-sm text-gray-500">Start Date: {{ process.startDate }}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span [class]="'px-3 py-1 text-xs font-semibold rounded-full ' + (getOnboardingStatus(process) === 'In Progress' ? 'bg-yellow-100 text-yellow-800' : 'bg-slate-100 text-slate-800')">{{ getOnboardingStatus(process) }}</span>
+                    <p class="text-sm font-semibold mt-2">Overall Progress: {{getTaskProgress(process).toFixed(0)}}%</p>
+                    <p class="text-xs text-gray-500">{{ getCompletedTasksCount(process) }} of {{ process.tasks.length }} tasks completed</p>
+                </div>
+             </div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            @for(category of taskCategories(); track category) {
+                 @let tasks = groupedTasks()[category];
+                <div class="p-5 bg-white rounded-lg shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                           @switch (category) {
+                                @case ('IT') {
+                                    <svg class="w-5 h-5 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                                }
+                                @case ('Admin') {
+                                    <svg class="w-5 h-5 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                                }
+                                @case ('Compliance') {
+                                    <svg class="w-5 h-5 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 20.944L12 23l9-2.056A12.02 12.02 0 0021 7.944c-1.007-.246-2.036-.64-3.04-1.102z"></path></svg>
+                                }
+                                @case ('HR') {
+                                    <svg class="w-5 h-5 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.125-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.125-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                }
+                                @case ('Manager') {
+                                    <svg class="w-5 h-5 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                }
+                                @default {
+                                    <svg class="w-5 h-5 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path></svg>
+                                }
+                            }
+                            {{ category }}
+                        </h3>
+                        <span class="text-sm font-medium text-gray-500">{{ getCompletedTasksInCategory(tasks) }}/{{ tasks.length }}</span>
+                    </div>
+                    <div class="space-y-3">
+                        @for(task of tasks; track task.id) {
+                            <div [class]="'p-4 rounded-lg border cursor-pointer ' + (task.status === 'Completed' ? 'bg-green-50 border-green-200' : 'bg-white border-slate-200 hover:bg-slate-50')" (click)="toggleTaskStatus(task)">
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5 mt-1">
+                                      @if (task.status === 'Completed') {
+                                        <div class="w-5 h-5 flex items-center justify-center rounded-full bg-green-500 text-white">
+                                           <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                        </div>
+                                      } @else {
+                                        <div class="w-5 h-5 border-2 border-slate-300 rounded-full"></div>
+                                      }
+                                    </div>
+                                    <div class="ml-3 text-sm flex-grow">
+                                        <div class="flex items-center justify-between">
+                                            <label class="font-medium text-gray-800">{{ task.name }}</label>
+                                            <span [class]="'px-2 py-0.5 text-xs font-semibold rounded-full ' + (task.category === 'IT' ? 'bg-blue-100 text-blue-800' : task.category === 'Admin' ? 'bg-purple-100 text-purple-800' : 'bg-slate-100 text-slate-800')">{{ task.category }}</span>
+                                        </div>
+                                        <p class="text-gray-500">{{ task.description }}</p>
+                                        <div class="flex items-center justify-between mt-2">
+                                          <div class="relative">
+                                            <button (click)="toggleAssigneeMenu(task.id, $event)" class="flex items-center text-xs text-slate-600 bg-slate-100 border border-slate-200 px-2 py-1 rounded-md hover:bg-slate-200">
+                                              @if (task.assignee; as assignee) {
+                                                <img [src]="assignee.avatar" [alt]="assignee.name" class="w-4 h-4 rounded-full mr-1.5">
+                                                <span class="font-medium">{{ assignee.name }}</span>
+                                              } @else {
+                                                <svg class="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                                                <span>Assign to</span>
+                                              }
+                                              <svg class="w-3 h-3 ml-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                                            </button>
+
+                                            @if (activeAssigneeMenu() === task.id) {
+                                              <div class="absolute z-20 bottom-full mb-2 w-48 bg-white border border-slate-200 rounded-lg shadow-lg">
+                                                <div class="p-1">
+                                                  @for (member of teamMembers(); track member.id) {
+                                                    <a (click)="assignTask(task, member); $event.stopPropagation()" class="flex items-center w-full px-3 py-2 text-sm text-left text-slate-700 hover:bg-slate-100 rounded-md cursor-pointer">
+                                                      <img [src]="member.avatar" [alt]="member.name" class="w-6 h-6 rounded-full mr-2">
+                                                      <span>{{ member.name }}</span>
+                                                    </a>
+                                                  }
+                                                </div>
+                                              </div>
+                                            }
+                                          </div>
+                                          @if(task.status === 'Completed' && task.completionDate) {
+                                            <span class="text-xs text-gray-500">Completed {{ task.completionDate }}</span>
+                                          }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+      </div>
+    } @else if (activeTab() === 'offboarding' && selectedOffboardingProcess(); as process) {
+       <div class="space-y-6">
+        <header>
+            <button (click)="goBackToList()" class="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 mb-4">
+                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                Back
+            </button>
+            <h1 class="text-3xl font-bold text-gray-800">Offboarding Tasks</h1>
+            <p class="mt-1 text-gray-500">{{ process.employeeName }} - {{ process.department }}</p>
+        </header>
+
+        <div class="p-5 bg-white rounded-lg shadow-sm border border-slate-200">
+             <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <img [src]="process.avatar" class="w-16 h-16 rounded-full" [alt]="process.employeeName">
+                    <div class="ml-4">
+                        <p class="text-xl font-semibold text-gray-800">{{ process.employeeName }}</p>
+                        <p class="text-sm text-gray-500">{{ process.email }}</p>
+                        <p class="text-sm text-gray-500">Last Working Day: {{ process.lastDay }}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span class="px-3 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">{{ process.status }}</span>
+                    <p class="text-sm font-semibold mt-2">Overall Progress: {{getOffboardingTaskProgress(process).toFixed(0)}}%</p>
+                    <p class="text-xs text-gray-500">{{ getCompletedOffboardingTasksCount(process) }} of {{ process.tasks.length }} tasks completed</p>
+                </div>
+             </div>
+        </div>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            @for(category of offboardingTaskCategories(); track category) {
+                 @let tasks = groupedOffboardingTasks()[category];
+                <div class="p-5 bg-white rounded-lg shadow-sm border border-slate-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800 flex items-center">
+                           @switch (category) {
+                                @case ('IT') { <svg class="w-5 h-5 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg> }
+                                @case ('Admin') { <svg class="w-5 h-5 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg> }
+                                @case ('HR') { <svg class="w-5 h-5 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.653-.125-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.653.125-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg> }
+                                @case ('Manager') { <svg class="w-5 h-5 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg> }
+                            }
+                            {{ category }}
+                        </h3>
+                        <span class="text-sm font-medium text-gray-500">{{ getCompletedOffboardingTasksInCategory(tasks) }}/{{ tasks.length }}</span>
+                    </div>
+                    <div class="space-y-3">
+                        @for(task of tasks; track task.id) {
+                            <div [class]="'p-4 rounded-lg border cursor-pointer ' + (task.status === 'Completed' ? 'bg-green-50 border-green-200' : 'bg-white border-slate-200 hover:bg-slate-50')" (click)="toggleOffboardingTaskStatus(task)">
+                                <div class="flex items-start">
+                                    <div class="flex items-center h-5 mt-1">
+                                      @if (task.status === 'Completed') {
+                                        <div class="w-5 h-5 flex items-center justify-center rounded-full bg-green-500 text-white">
+                                           <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                                        </div>
+                                      } @else {
+                                        <div class="w-5 h-5 border-2 border-slate-300 rounded-full"></div>
+                                      }
+                                    </div>
+                                    <div class="ml-3 text-sm flex-grow">
+                                        <label class="font-medium text-gray-800">{{ task.name }}</label>
+                                        <p class="text-gray-500">{{ task.description }}</p>
+                                        <div class="flex items-center justify-end mt-2">
+                                          @if(task.status === 'Completed' && task.completionDate) {
+                                            <span class="text-xs text-gray-500">Completed {{ task.completionDate }}</span>
+                                          }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+      </div>
+    }
+  }
+</div>
+
+<!-- Start Onboarding Modal -->
+@if (showOnboardingModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60" (click)="closeOnboardingModal()">
+    <div class="w-full max-w-lg p-8 bg-white rounded-2xl shadow-2xl" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Start Onboarding</h2>
+          <p class="mt-1 text-sm text-gray-500">Initialize onboarding process for a new employee</p>
+        </div>
+        <button (click)="closeOnboardingModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <form (ngSubmit)="initiateOnboarding()" class="mt-6 space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Select from hired candidates</label>
+          <select [ngModel]="newOnboardingForm().selectedCandidateId" (ngModelChange)="onCandidateSelect($event)" name="selectedCandidate" class="block w-full px-3 py-2.5 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm appearance-none">
+            <option value="" disabled selected>Select a candidate</option>
+            @for (candidate of hiredCandidates(); track candidate.id) {
+              <option [value]="candidate.id">{{ candidate.name }}</option>
+            }
+          </select>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Employee Name</label>
+          <div class="relative mt-1">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3"><svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></span>
+            <input type="text" [(ngModel)]="newOnboardingForm().employeeName" name="employeeName" required placeholder="Full name" class="block w-full py-2.5 pl-10 pr-3 border-gray-300 rounded-md shadow-sm">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Email</label>
+          <div class="relative mt-1">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3"><svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg></span>
+            <input type="email" [(ngModel)]="newOnboardingForm().email" name="email" required placeholder="employee@company.com" class="block w-full py-2.5 pl-10 pr-3 border-gray-300 rounded-md shadow-sm">
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Department</label>
+          <div class="relative mt-1">
+             <span class="absolute inset-y-0 left-0 flex items-center pl-3"><svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg></span>
+            <select [(ngModel)]="newOnboardingForm().department" name="department" required class="block w-full py-2.5 pl-10 pr-3 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm appearance-none">
+              <option value="" disabled selected>Select department</option>
+              @for (dept of departments(); track dept) {
+                <option [value]="dept">{{ dept }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Start Date</label>
+          <div class="relative mt-1">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3"><svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></span>
+            <input type="date" [(ngModel)]="newOnboardingForm().startDate" name="startDate" required placeholder="mm/dd/yyyy" class="block w-full py-2.5 pl-10 pr-3 border-gray-300 rounded-md shadow-sm">
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-4 space-x-3">
+          <button type="button" (click)="closeOnboardingModal()" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50">Cancel</button>
+          <button type="submit" class="px-5 py-2.5 text-sm font-medium text-white bg-slate-800 rounded-lg shadow-sm hover:bg-slate-900">Start Onboarding</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- Start Offboarding Modal -->
+@if (showOffboardingModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60" (click)="closeOffboardingModal()">
+    <div class="w-full max-w-lg p-8 bg-white rounded-2xl shadow-2xl" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Start Offboarding</h2>
+          <p class="mt-1 text-sm text-gray-500">Initialize offboarding process for a departing employee</p>
+        </div>
+        <button (click)="closeOffboardingModal()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+
+      <form (ngSubmit)="initiateOffboarding()" class="mt-6 space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Employee Name</label>
+          <div class="relative mt-1">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3"><svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg></span>
+            <input type="text" [(ngModel)]="newOffboardingForm().employeeName" name="employeeName" required placeholder="Full name" class="block w-full py-2.5 pl-10 pr-3 border-gray-300 rounded-md shadow-sm">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Email</label>
+          <div class="relative mt-1">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3"><svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg></span>
+            <input type="email" [(ngModel)]="newOffboardingForm().email" name="email" required placeholder="employee@company.com" class="block w-full py-2.5 pl-10 pr-3 border-gray-300 rounded-md shadow-sm">
+          </div>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Department</label>
+          <div class="relative mt-1">
+             <span class="absolute inset-y-0 left-0 flex items-center pl-3"><svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg></span>
+            <select [(ngModel)]="newOffboardingForm().department" name="department" required class="block w-full py-2.5 pl-10 pr-3 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm appearance-none">
+              <option value="" disabled selected>Select department</option>
+              @for (dept of departments(); track dept) {
+                <option [value]="dept">{{ dept }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Last Working Day</label>
+          <div class="relative mt-1">
+            <span class="absolute inset-y-0 left-0 flex items-center pl-3"><svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg></span>
+            <input type="date" [(ngModel)]="newOffboardingForm().lastDay" name="lastDay" required placeholder="mm/dd/yyyy" class="block w-full py-2.5 pl-10 pr-3 border-gray-300 rounded-md shadow-sm">
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-4 space-x-3">
+          <button type="button" (click)="closeOffboardingModal()" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50">Cancel</button>
+          <button type="submit" class="px-5 py-2.5 text-sm font-medium text-white bg-slate-800 rounded-lg shadow-sm hover:bg-slate-900">Start Offboarding</button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+
+@if (toast(); as toast) {
+  <div class="fixed bottom-6 right-6 bg-slate-900 text-white py-3 px-5 rounded-lg shadow-2xl transition-opacity duration-300 animate-fade-in-up">
+    <p class="font-semibold">{{ toast.message }}</p>
+    <p class="text-sm text-slate-300">{{ toast.details }}</p>
+  </div>
+}
+<style>
+  @keyframes fade-in-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .animate-fade-in-up {
+    animation: fade-in-up 0.5s ease-out forwards;
+  }
+</style>

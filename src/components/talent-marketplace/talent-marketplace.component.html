@@ -1,0 +1,229 @@
+<div class="space-y-6">
+  @switch (viewMode()) {
+    @case ('list') {
+      <header class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-800">Internal Talent Marketplace</h1>
+          <p class="mt-1 text-gray-500">Browse and manage internal gig opportunities.</p>
+        </div>
+        <a routerLink="/talent/new" class="flex items-center px-4 py-2 text-sm font-medium text-white bg-slate-800 rounded-lg shadow-sm hover:bg-slate-900">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+          Create Gig
+        </a>
+      </header>
+
+       <div class="grid grid-cols-1 gap-5 sm:grid-cols-4">
+          <div class="p-5 bg-white rounded-lg shadow-sm border border-slate-200"><p class="text-sm font-medium text-gray-500">Open Gigs</p><p class="text-3xl font-bold text-gray-800">2</p></div>
+          <div class="p-5 bg-white rounded-lg shadow-sm border border-slate-200"><p class="text-sm font-medium text-gray-500">In Progress</p><p class="text-3xl font-bold text-gray-800">1</p></div>
+          <div class="p-5 bg-white rounded-lg shadow-sm border border-slate-200"><p class="text-sm font-medium text-gray-500">Total Applicants</p><p class="text-3xl font-bold text-gray-800">3</p></div>
+          <div class="p-5 bg-white rounded-lg shadow-sm border border-slate-200"><p class="text-sm font-medium text-gray-500">Available Talent</p><p class="text-3xl font-bold text-gray-800">4</p></div>
+      </div>
+      
+      <div class="p-4 bg-white rounded-lg shadow-sm border border-slate-200">
+        <div class="relative">
+          <svg class="absolute w-5 h-5 text-slate-400 left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          <input type="text" placeholder="Search gigs by title, department, or skills..." class="w-full py-2 pl-10 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+        </div>
+      </div>
+      
+      <div class="border-b border-gray-200">
+          <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+              <button (click)="activeTab.set('All Gigs')" [class]="'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ' + (activeTab() === 'All Gigs' ? 'border-slate-700 text-slate-800' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')">All Gigs (3)</button>
+              <button (click)="activeTab.set('Open')" [class]="'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ' + (activeTab() === 'Open' ? 'border-slate-700 text-slate-800' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')">Open (2)</button>
+              <button (click)="activeTab.set('In Progress')" [class]="'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ' + (activeTab() === 'In Progress' ? 'border-slate-700 text-slate-800' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')">In Progress (1)</button>
+              <button (click)="activeTab.set('Employee Matching')" [class]="'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ' + (activeTab() === 'Employee Matching' ? 'border-slate-700 text-slate-800' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')">Employee Matching</button>
+          </nav>
+      </div>
+
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
+        @for(gig of gigs(); track gig.id) {
+          <a [routerLink]="['/talent', gig.id]" class="block p-6 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex items-start justify-between">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900">{{ gig.title }}</h3>
+                <p class="text-sm text-gray-500">{{ gig.department }}</p>
+              </div>
+              <span [class]="'px-3 py-1 text-xs font-semibold rounded-full ' + (gig.status === 'Open' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800')">{{ gig.status }}</span>
+            </div>
+            <p class="mt-3 text-sm text-gray-600">{{gig.description}}</p>
+            <div class="mt-4 flex flex-wrap gap-2">
+               @for(skill of gig.skills; track skill) {
+                <span class="px-2 py-1 text-xs text-blue-700 bg-blue-100 rounded-md">{{skill}}</span>
+               }
+            </div>
+            <div class="flex items-end justify-between mt-6 pt-4 border-t border-slate-100">
+              <div>
+                <p class="text-sm text-gray-500">{{gig.duration}}</p>
+                @if(gig.assignedTo) {
+                   <p class="text-sm text-gray-500 mt-1">Assigned to: <span class="font-medium text-gray-700">{{gig.assignedTo}}</span></p>
+                }
+              </div>
+              <p class="text-sm font-medium text-gray-700">{{gig.applicants}} applicants</p>
+            </div>
+          </a>
+        }
+      </div>
+    }
+    @case ('create') {
+      <div class="max-w-3xl mx-auto">
+        <header>
+          <button (click)="cancelCreate()" class="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 mb-2">
+            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            Back to Marketplace
+          </button>
+          <h1 class="text-3xl font-bold text-gray-800">Create New Gig</h1>
+          <p class="mt-1 text-gray-500">Post an internal gig opportunity for employees.</p>
+        </header>
+        <form (ngSubmit)="saveGig('Open')" class="mt-8 space-y-6">
+          <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-800">Gig Details</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700">Gig Title *</label>
+                <input type="text" [(ngModel)]="newGig().title" name="title" required class="block w-full mt-1 border-gray-300 rounded-md shadow-sm">
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Department *</label>
+                 <select [(ngModel)]="newGig().department" name="department" required class="block w-full mt-1 border-gray-300 rounded-md shadow-sm"><option value="" disabled>Select department</option>@for(d of departments;track d){<option [value]="d">{{d}}</option>}</select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700">Duration *</label>
+                <select [(ngModel)]="newGig().duration" name="duration" required class="block w-full mt-1 border-gray-300 rounded-md shadow-sm"><option value="" disabled>Select duration</option>@for(d of durations;track d){<option [value]="d">{{d}}</option>}</select>
+              </div>
+               <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700">Expected Start Date</label>
+                <input type="date" [(ngModel)]="newGig().startDate" name="startDate" class="block w-full mt-1 border-gray-300 rounded-md shadow-sm">
+              </div>
+            </div>
+          </div>
+          <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
+             <h2 class="text-lg font-semibold text-gray-800">Required Skills</h2>
+             <div class="flex items-center mt-4">
+                <input type="text" [(ngModel)]="skillsInput" name="skillsInput" (keydown.enter)="addSkill(); $event.preventDefault()" placeholder="Add a required skill" class="flex-grow border-gray-300 rounded-l-md shadow-sm">
+                <button type="button" (click)="addSkill()" class="px-4 py-2 text-white bg-slate-700 border border-slate-700 rounded-r-md hover:bg-slate-800">+</button>
+              </div>
+              <div class="flex flex-wrap gap-2 mt-2">
+                @if(newGig().skills.length === 0) { <p class="text-sm text-gray-500">No skills added yet. Add skills to help match employees.</p> }
+                @for(skill of newGig().skills; track skill) {
+                  <span class="flex items-center px-2 py-1 text-xs text-blue-700 bg-blue-100 rounded-md">
+                    {{skill}}
+                    <button type="button" (click)="removeSkill(skill)" class="ml-2 font-bold text-blue-500 hover:text-blue-700">&times;</button>
+                  </span>
+                }
+              </div>
+          </div>
+           <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
+              <h2 class="text-lg font-semibold text-gray-800">Description</h2>
+              <textarea [(ngModel)]="newGig().description" name="description" rows="4" placeholder="Describe the gig, expected outcomes, and any other relevant details..." class="block w-full mt-4 border-gray-300 rounded-md shadow-sm"></textarea>
+            </div>
+           <div class="flex items-center justify-end pt-4 space-x-3">
+              <button type="button" (click)="cancelCreate()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50">Cancel</button>
+              <button type="button" (click)="saveGig('Draft')" class="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-200 rounded-md shadow-sm hover:bg-slate-300">Save as Draft</button>
+              <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-slate-800 rounded-md shadow-sm hover:bg-slate-900">Publish Gig</button>
+          </div>
+        </form>
+      </div>
+    }
+    @case ('detail') {
+      @if(selectedGig(); as gig) {
+        <header>
+          <button [routerLink]="['/talent']" class="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 mb-4">
+              <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+              Back to Marketplace
+          </button>
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h1 class="text-3xl font-bold text-gray-800">{{gig.title}}</h1>
+              <p class="mt-1 text-gray-500">{{gig.department}}</p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span [class]="'px-3 py-1 text-xs font-semibold rounded-full ' + (gig.status === 'Open' ? 'bg-green-100 text-green-800' : (gig.status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' : 'bg-slate-100 text-slate-800'))">{{ gig.status }}</span>
+              <button (click)="closeGig(gig)" [disabled]="gig.status === 'Closed'" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:bg-red-300">Close Gig</button>
+            </div>
+          </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div class="lg:col-span-2 space-y-6">
+              <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
+                  <h3 class="text-lg font-semibold text-gray-800 mb-4">Gig Details</h3>
+                  <p class="text-sm text-gray-600 mb-6">{{gig.description}}</p>
+                  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm border-t border-slate-100 pt-4">
+                      <div><p class="text-gray-500">Duration</p><p class="font-medium text-gray-800">{{gig.duration}}</p></div>
+                      <div><p class="text-gray-500">Start Date</p><p class="font-medium text-gray-800">{{gig.startDate}}</p></div>
+                      <div><p class="text-gray-500">Department</p><p class="font-medium text-gray-800">{{gig.department}}</p></div>
+                      <div><p class="text-gray-500">Created By</p><p class="font-medium text-gray-800">{{gig.createdBy}}</p></div>
+                  </div>
+              </div>
+              <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
+                <h3 class="text-lg font-semibold text-gray-800">Required Skills</h3>
+                <div class="flex flex-wrap gap-2 mt-4">
+                    @for(skill of gig.skills; track skill) { <span class="px-3 py-1 text-sm font-medium text-blue-800 bg-blue-100 rounded-full">{{skill}}</span> }
+                </div>
+              </div>
+              <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
+                  <h3 class="text-lg font-semibold text-gray-800">Applicants ({{gig.applicantsList?.length || 0}})</h3>
+                  <div class="mt-4 space-y-3">
+                      @for(applicant of gig.applicantsList; track applicant.id) {
+                          <div class="flex items-center p-3 bg-slate-50 rounded-lg border border-slate-200">
+                              <span class="flex items-center justify-center w-10 h-10 font-bold text-slate-700 bg-slate-200 rounded-full">{{applicant.initials}}</span>
+                              <div class="ml-4 flex-grow grid grid-cols-4 gap-4 items-center text-sm">
+                                  <div><p class="font-semibold text-gray-800">{{applicant.name}}</p><p class="text-xs text-orange-500 font-semibold">{{applicant.rating}} ★</p></div>
+                                  <p class="text-gray-600">{{applicant.previousGigs}} previous gigs</p>
+                                  <p class="text-gray-500">Applied {{applicant.appliedDate}}</p>
+                                  <div class="flex items-center space-x-2">
+                                    <div class="w-full bg-slate-200 rounded-full h-2"><div class="bg-green-500 h-2 rounded-full" [style.width.%]="applicant.skillMatch"></div></div>
+                                    <span class="text-xs font-semibold text-green-700">{{applicant.skillMatch}}%</span>
+                                    <button class="px-3 py-1.5 text-xs font-medium text-white bg-slate-700 rounded-md hover:bg-slate-800">Assign</button>
+                                  </div>
+                              </div>
+                          </div>
+                      }
+                  </div>
+              </div>
+          </div>
+          <div class="space-y-6">
+            <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
+                <h3 class="text-lg font-semibold text-gray-800">Suggested Employees</h3>
+                <div class="mt-4 space-y-3">
+                    @for(employee of gig.suggestedEmployees; track employee.id) {
+                        <div class="p-4 bg-slate-50 rounded-lg border border-slate-200">
+                          <div class="flex items-center">
+                            <img [src]="employee.avatar" [alt]="employee.name" class="w-10 h-10 rounded-full">
+                            <div class="ml-3">
+                              <p class="font-semibold text-gray-800">{{employee.name}}</p>
+                              <p class="text-xs text-gray-500">{{employee.role}}</p>
+                            </div>
+                             <span class="ml-auto text-sm font-semibold text-green-700">{{employee.skillMatch}}%</span>
+                          </div>
+                          <div class="flex flex-wrap gap-1 mt-3">
+                            @for(skill of employee.skills; track skill) { <span class="px-1.5 py-0.5 text-[10px] text-blue-700 bg-blue-100 rounded">{{skill}}</span> }
+                          </div>
+                          <p class="text-xs text-gray-500 mt-2">{{employee.gigsCompleted}}</p>
+                          <button (click)="assignToGig(gig, employee)" [disabled]="employee.isAssigned" class="w-full mt-3 px-3 py-2 text-sm font-medium text-white rounded-md transition-colors" [class]="employee.isAssigned ? 'bg-green-500' : 'bg-slate-700 hover:bg-slate-800'">{{employee.isAssigned ? 'Assigned' : 'Assign to Gig'}}</button>
+                        </div>
+                    }
+                </div>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <p>Gig not found.</p>
+      }
+    }
+  }
+
+  @if (toast(); as toast) {
+    <div class="fixed bottom-6 right-6 bg-slate-900 text-white py-3 px-5 rounded-lg shadow-2xl transition-opacity duration-300 animate-fade-in-up">
+      <p class="font-semibold">{{ toast.message }}</p>
+      @if(toast.details) { <p class="text-sm text-slate-300">{{ toast.details }}</p> }
+    </div>
+  }
+</div>
+<style>
+  @keyframes fade-in-up {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-in-up { animation: fade-in-up 0.5s ease-out forwards; }
+</style>
