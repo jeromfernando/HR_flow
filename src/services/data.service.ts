@@ -1,8 +1,22 @@
 import { Injectable, signal } from '@angular/core';
 import { Job, Candidate, OnboardingProcess, OffboardingProcess, Gig, CandidateStage, OnboardingTask, OffboardingTask, TeamMember, Note, GigApplicant, SuggestedEmployee } from '../models';
 
+
+export interface Message {
+  id: number;
+  recipientEmail: string;
+  subject: string;
+  body: string;
+  date: string;
+  read: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class DataService {
+
+  messages = signal<Message[]>([
+    { id: 1, recipientEmail: 'time.traveler@example.com', subject: 'Welcome!', body: 'Welcome to the HR Flow portal.', date: '12/20/2025', read: false }
+  ]);
 
   jobs = signal<Job[]>([
     { id: 1, title: 'Senior Software Engineer', department: 'Engineering', location: 'Remote', salaryMin: 120000, salaryMax: 180000, experience: '5+ years', status: 'Published', postType: 'External', skills: ['React', 'TypeScript', 'Node.js'], applicants: 45 },
@@ -32,7 +46,8 @@ export class DataService {
   ]);
 
   onboardingProcesses = signal<OnboardingProcess[]>([
-    { id: 1, employeeName: 'David Brown', department: 'Engineering', startDate: '02/15/2024', tasks: [
+    {
+      id: 1, employeeName: 'David Brown', department: 'Engineering', startDate: '02/15/2024', tasks: [
         { id: 1, name: 'Create Email Account', description: 'Set up company email', category: 'IT', status: 'Completed', completionDate: '12/6/2025' },
         { id: 2, name: 'Laptop Assignment', description: 'Assign and configure laptop', category: 'IT', status: 'Completed', completionDate: '12/6/2025' },
         { id: 3, name: 'Access Setup', description: 'Configure system access', category: 'IT', status: 'Pending' },
@@ -40,7 +55,8 @@ export class DataService {
         { id: 5, name: 'Compliance Training', description: 'Complete compliance forms', category: 'Compliance', status: 'Pending' }
       ]
     },
-    { id: 2, employeeName: 'Rachel Green', department: 'Marketing', startDate: '02/20/2024', tasks: [
+    {
+      id: 2, employeeName: 'Rachel Green', department: 'Marketing', startDate: '02/20/2024', tasks: [
         { id: 1, name: 'Create email account', description: 'Set up company email', category: 'IT', status: 'Pending' },
         { id: 2, name: 'Marketing tools access', description: 'Grant access to marketing software', category: 'Manager', status: 'Pending' },
         { id: 3, name: 'Send welcome kit', description: 'Ship company swag and materials', category: 'HR', status: 'Pending' },
@@ -50,16 +66,16 @@ export class DataService {
   ]);
 
   offboardingProcesses = signal<OffboardingProcess[]>([
-    { 
-      id: 1, 
-      employeeName: 'Tom Harris', 
-      department: 'Sales', 
-      lastDay: '02/28/2024', 
-      assetReturnStatus: '1/3 IT assets', 
-      exitInterviewScheduled: false, 
-      email: 'tom.harris@company.com', 
-      avatar: 'https://i.pravatar.cc/150?u=tomharris', 
-      status: 'In Progress', 
+    {
+      id: 1,
+      employeeName: 'Tom Harris',
+      department: 'Sales',
+      lastDay: '02/28/2024',
+      assetReturnStatus: '1/3 IT assets',
+      exitInterviewScheduled: false,
+      email: 'tom.harris@company.com',
+      avatar: 'https://i.pravatar.cc/150?u=tomharris',
+      status: 'In Progress',
       progress: 40,
       tasks: [
         { id: 1, name: 'Return Company Laptop', description: 'Return laptop and accessories to IT department', category: 'IT', status: 'Pending' },
@@ -69,15 +85,15 @@ export class DataService {
       ]
     }
   ]);
-  
+
   gigs = signal<Gig[]>([
-    { 
-      id: 1, 
-      title: 'Mobile App Development Sprint', 
-      department: 'Engineering', 
-      duration: '4 weeks', 
-      skills: ['React Native', 'TypeScript', 'API Integration'], 
-      status: 'Open', 
+    {
+      id: 1,
+      title: 'Mobile App Development Sprint',
+      department: 'Engineering',
+      duration: '4 weeks',
+      skills: ['React Native', 'TypeScript', 'API Integration'],
+      status: 'Open',
       applicants: 2,
       description: 'Help build a new mobile app feature for our flagship product.',
       startDate: '02/15/2024',
@@ -91,19 +107,19 @@ export class DataService {
         { id: 2, name: 'Sophie Lee', avatar: 'https://i.pravatar.cc/150?u=sophie', role: 'Frontend Developer', skills: ['React Native', 'TypeScript'], gigsCompleted: '4.5 • 2 gigs completed', skillMatch: 67, isAssigned: false },
       ]
     },
-    { 
-      id: 2, 
-      title: 'Marketing Campaign Analysis', 
-      department: 'Marketing', 
-      duration: '2 weeks', 
-      skills: ['Data Analysis', 'Excel', 'Presentation'], 
-      status: 'Open', 
+    {
+      id: 2,
+      title: 'Marketing Campaign Analysis',
+      department: 'Marketing',
+      duration: '2 weeks',
+      skills: ['Data Analysis', 'Excel', 'Presentation'],
+      status: 'Open',
       applicants: 1,
       description: 'Analyze Q1 marketing campaign performance and provide insights.',
       startDate: '02/20/2024',
       createdBy: 'Marketing Director',
       applicantsList: [
-         { id: 3, name: 'Chris Park', initials: 'CP', rating: 4.9, previousGigs: 5, appliedDate: '12/17/2025', skillMatch: 92 },
+        { id: 3, name: 'Chris Park', initials: 'CP', rating: 4.9, previousGigs: 5, appliedDate: '12/17/2025', skillMatch: 92 },
       ],
       suggestedEmployees: [
         { id: 3, name: 'Chris Park', avatar: 'https://i.pravatar.cc/150?u=chris', role: 'Data Analyst', skills: ['Data Analysis', 'Excel', 'Presentation'], gigsCompleted: '4.9 • 5 gigs completed', skillMatch: 100, isAssigned: false },
@@ -112,8 +128,15 @@ export class DataService {
     { id: 3, title: 'Internal Training Program', department: 'Human Resources', duration: '6 weeks', skills: ['Training', 'Communication', 'Content Creation'], status: 'In Progress', applicants: 0, assignedTo: 'Maria Garcia', description: 'Develop and deliver training sessions for new hires.' },
   ]);
 
+  sendMessage(recipientEmail: string, subject: string, body: string) {
+    this.messages.update(msgs => [
+      { id: Date.now(), recipientEmail, subject, body, date: new Date().toLocaleDateString(), read: false },
+      ...msgs
+    ]);
+  }
+
   addCandidateNote(candidateId: number, noteText: string) {
-    this.candidates.update(candidates => 
+    this.candidates.update(candidates =>
       candidates.map(c => {
         if (c.id === candidateId) {
           const newNote: Note = {
@@ -123,6 +146,10 @@ export class DataService {
             text: noteText
           };
           const notes = c.notes ? [...c.notes, newNote] : [newNote];
+
+          // Auto-notify candidate about new note/message
+          this.sendMessage(c.email, 'New Message from HR', noteText);
+
           return { ...c, notes };
         }
         return c;
@@ -131,11 +158,25 @@ export class DataService {
   }
 
   updateCandidateStage(candidateId: number, newStage: CandidateStage) {
-    this.candidates.update(candidates =>
-      candidates.map(c => c.id === candidateId ? { ...c, stage: newStage } : c)
-    );
+    this.candidates.update(candidates => {
+      const updated = candidates.map(c => {
+        if (c.id === candidateId) {
+          // Notify user of status change
+          if (c.stage !== newStage) {
+            this.sendMessage(
+              c.email,
+              `Application Update: ${newStage}`,
+              `Your application for Job ID #${c.jobId} has moved to the ${newStage} stage.`
+            );
+          }
+          return { ...c, stage: newStage };
+        }
+        return c;
+      });
+      return updated;
+    });
   }
-  
+
   addJob(job: Omit<Job, 'id'>) {
     this.jobs.update(jobs => [...jobs, { ...job, id: Date.now(), applicants: 0 }]);
   }
@@ -144,10 +185,32 @@ export class DataService {
     this.gigs.update(gigs => [...gigs, { ...gig, id: Date.now(), applicants: 0, status: 'Open' }]);
   }
 
+  addGigApplicant(gigId: number, name: string) {
+    this.gigs.update(gigs => gigs.map(g => {
+      if (g.id === gigId) {
+        const newApplicant: GigApplicant = {
+          id: Date.now(),
+          name,
+          initials: name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2),
+          rating: 0,
+          previousGigs: 0,
+          appliedDate: new Date().toLocaleDateString(),
+          skillMatch: 0
+        };
+        return {
+          ...g,
+          applicants: g.applicants + 1,
+          applicantsList: [...(g.applicantsList || []), newApplicant]
+        };
+      }
+      return g;
+    }));
+  }
+
   assignToGig(gigId: number, employeeId: number) {
     this.gigs.update(gigs => gigs.map(gig => {
       if (gig.id === gigId) {
-        const updatedEmployees = gig.suggestedEmployees?.map(emp => 
+        const updatedEmployees = gig.suggestedEmployees?.map(emp =>
           emp.id === employeeId ? { ...emp, isAssigned: true } : emp
         );
         return { ...gig, suggestedEmployees: updatedEmployees };
@@ -157,18 +220,18 @@ export class DataService {
   }
 
   closeGig(gigId: number) {
-    this.gigs.update(gigs => gigs.map(gig => 
+    this.gigs.update(gigs => gigs.map(gig =>
       gig.id === gigId ? { ...gig, status: 'Closed' } : gig
     ));
   }
-  
+
   updateOnboardingTask(processId: number, updatedTask: OnboardingTask) {
-    this.onboardingProcesses.update(processes => 
+    this.onboardingProcesses.update(processes =>
       processes.map(process => {
         if (process.id === processId) {
           return {
             ...process,
-            tasks: process.tasks.map(task => 
+            tasks: process.tasks.map(task =>
               task.id === updatedTask.id ? updatedTask : task
             )
           };
@@ -190,6 +253,13 @@ export class DataService {
         { id: 5, name: 'Compliance Training', description: 'Complete compliance forms', category: 'Compliance', status: 'Pending' }
       ]
     };
+
+    this.sendMessage(
+      processData.email,
+      'Onboarding Started',
+      `Welcome to the team, ${processData.employeeName}! Your onboarding process has started. Please check your tasks.`
+    );
+
     this.onboardingProcesses.update(processes => [...processes, newProcess]);
   }
 
@@ -210,22 +280,29 @@ export class DataService {
         { id: 5, name: 'Revoke System Access', description: 'Disable all system and email access on the last day', category: 'IT', status: 'Pending' }
       ]
     };
+
+    this.sendMessage(
+      processData.email,
+      'Offboarding Initiated',
+      `Dear ${processData.employeeName}, your offboarding checklist is now available. Please complete required tasks before your last day.`
+    );
+
     this.offboardingProcesses.update(processes => [...processes, newProcess]);
   }
 
   updateOffboardingProcess(updatedProcess: OffboardingProcess) {
-    this.offboardingProcesses.update(processes => 
+    this.offboardingProcesses.update(processes =>
       processes.map(p => p.id === updatedProcess.id ? updatedProcess : p)
     );
   }
 
   updateOffboardingTask(processId: number, updatedTask: OffboardingTask) {
-    this.offboardingProcesses.update(processes => 
+    this.offboardingProcesses.update(processes =>
       processes.map(process => {
         if (process.id === processId) {
           return {
             ...process,
-            tasks: process.tasks.map(task => 
+            tasks: process.tasks.map(task =>
               task.id === updatedTask.id ? updatedTask : task
             )
           };
@@ -233,5 +310,26 @@ export class DataService {
         return process;
       })
     );
+  }
+  addCandidate(candidate: Omit<Candidate, 'id' | 'stage' | 'appliedDate' | 'avatar' | 'notes' | 'interviews' | 'communications'>) {
+    const newCandidate: Candidate = {
+      ...candidate,
+      id: Date.now(),
+      stage: 'Applied',
+      appliedDate: new Date().toLocaleDateString('en-US'),
+      avatar: `https://i.pravatar.cc/150?u=${candidate.name.replace(' ', '')}`,
+      notes: [],
+      interviews: [],
+      communications: []
+    };
+
+    // Check if already applied? Optional check, skipping for now for simplicity
+
+    this.candidates.update(candidates => [...candidates, newCandidate]);
+
+    // Also update job applicant count
+    this.jobs.update(jobs => jobs.map(j =>
+      j.id === candidate.jobId ? { ...j, applicants: j.applicants + 1 } : j
+    ));
   }
 }

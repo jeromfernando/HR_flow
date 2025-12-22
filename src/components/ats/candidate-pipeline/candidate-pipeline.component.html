@@ -1,356 +1,458 @@
 <div class="space-y-6">
   @if (viewMode() === 'list') {
+  <header>
+    <h1 class="text-3xl font-bold text-gray-800">Candidate Pipeline</h1>
+    <p class="mt-1 text-gray-500">Drag and drop candidates between stages to update their status.</p>
+  </header>
+
+  <!-- Filters -->
+  <div class="p-4 bg-white rounded-lg shadow-sm border border-slate-200">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div class="relative">
+        <svg class="absolute w-5 h-5 text-slate-400 left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor"
+          viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <input type="text" placeholder="Search candidates..."
+          class="w-full py-2 pl-10 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event)">
+      </div>
+      <select
+        class="w-full py-2 px-4 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+        [ngModel]="selectedJobId()" (ngModelChange)="selectedJobId.set($event)">
+        <option value="all">All Jobs</option>
+        @for (job of allJobs(); track job.id) {
+        <option [value]="job.id">{{ job.title }}</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <div class="flex w-full h-[75vh] overflow-x-auto pb-4 space-x-6">
+    @for(stage of stages; track stage) {
+    <div class="flex-shrink-0 w-80 bg-slate-100 rounded-xl">
+      <div
+        class="flex items-center p-4 border-b border-slate-200 sticky top-0 bg-slate-100/80 backdrop-blur-sm rounded-t-xl z-10">
+        <span class="w-2.5 h-2.5 rounded-full mr-3" [class]="stageColors[stage]"></span>
+        <h3 class="font-semibold text-gray-800">{{ stage }}</h3>
+        <span class="ml-auto text-sm font-medium text-gray-500 bg-slate-200 px-2 py-0.5 rounded-full">{{
+          (candidatesByStage()[stage] || []).length }}</span>
+      </div>
+      <div class="p-2 space-y-3 overflow-y-auto h-[calc(100%-4rem)]">
+        @for(candidate of candidatesByStage()[stage]; track candidate.id) {
+        <div (click)="selectCandidate(candidate.id)"
+          class="block p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-slate-200 cursor-pointer">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center">
+              <img [src]="candidate.avatar" class="w-10 h-10 rounded-full" [alt]="candidate.name">
+              <div class="ml-3">
+                <p class="font-semibold text-sm text-gray-800">{{ candidate.name }}</p>
+                <p class="text-xs text-gray-500">{{ candidate.experience }} years</p>
+              </div>
+            </div>
+            <div class="flex items-center text-sm text-orange-400">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                </path>
+              </svg>
+              <span class="ml-1 font-semibold">{{ candidate.rating }}</span>
+            </div>
+          </div>
+          <div class="mt-2.5 flex flex-wrap gap-1.5">
+            @for(skill of candidate.skills.slice(0, 2); track skill) {
+            <span class="px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-md">{{skill}}</span>
+            }
+            @if(candidate.skills.length > 2) {
+            <span class="px-2 py-1 text-xs font-medium text-slate-600 bg-slate-200 rounded-md">+{{
+              candidate.skills.length - 2 }}</span>
+            }
+          </div>
+        </div>
+        }
+        @if((candidatesByStage()[stage] || []).length === 0) {
+        <div class="flex items-center justify-center h-24 text-sm text-gray-500">No candidates in this stage.</div>
+        }
+      </div>
+    </div>
+    }
+  </div>
+  } @else if(selectedCandidate(); as candidate) {
+  <div class="space-y-6">
     <header>
-      <h1 class="text-3xl font-bold text-gray-800">Candidate Pipeline</h1>
-      <p class="mt-1 text-gray-500">Drag and drop candidates between stages to update their status.</p>
+      <button (click)="goBackToList()"
+        class="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 mb-4">
+        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        Back to Pipeline
+      </button>
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-800">{{ candidate.name }}</h1>
+          <p class="mt-1 text-gray-500">Applied for {{ selectedJob()?.title }}</p>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button
+            class="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200">Reject</button>
+          <button (click)="showSendEmailModal.set(true)"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Send
+            Email</button>
+          <button (click)="showScheduleInterviewModal.set(true)"
+            class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Schedule
+            Interview</button>
+          <button (click)="moveStage()"
+            class="px-4 py-2 text-sm font-medium text-white bg-slate-800 rounded-lg hover:bg-slate-900">Move to Next
+            Stage</button>
+        </div>
+      </div>
     </header>
 
-    <!-- Filters -->
-    <div class="p-4 bg-white rounded-lg shadow-sm border border-slate-200">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="relative">
-          <svg class="absolute w-5 h-5 text-slate-400 left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-          <input 
-            type="text" 
-            placeholder="Search candidates..." 
-            class="w-full py-2 pl-10 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            [ngModel]="searchTerm()"
-            (ngModelChange)="searchTerm.set($event)">
-        </div>
-        <select 
-          class="w-full py-2 px-4 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          [ngModel]="selectedJobId()"
-          (ngModelChange)="selectedJobId.set($event)">
-          <option value="all">All Jobs</option>
-          @for (job of allJobs(); track job.id) {
-            <option [value]="job.id">{{ job.title }}</option>
-          }
-        </select>
-      </div>
-    </div>
-
-    <div class="flex w-full h-[75vh] overflow-x-auto pb-4 space-x-6">
-      @for(stage of stages; track stage) {
-        <div class="flex-shrink-0 w-80 bg-slate-100 rounded-xl">
-          <div class="flex items-center p-4 border-b border-slate-200 sticky top-0 bg-slate-100/80 backdrop-blur-sm rounded-t-xl z-10">
-            <span class="w-2.5 h-2.5 rounded-full mr-3" [class]="stageColors[stage]"></span>
-            <h3 class="font-semibold text-gray-800">{{ stage }}</h3>
-            <span class="ml-auto text-sm font-medium text-gray-500 bg-slate-200 px-2 py-0.5 rounded-full">{{ (candidatesByStage()[stage] || []).length }}</span>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Candidate Info -->
+        <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center">
+            <img [src]="candidate.avatar" class="w-20 h-20 rounded-full" [alt]="candidate.name">
+            <div class="ml-0 mt-4 sm:mt-0 sm:ml-6 flex-grow">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-xl font-bold text-gray-800">{{ candidate.name }}</h3>
+                  <p class="text-sm text-gray-500">{{ candidate.email }}</p>
+                </div>
+                <span
+                  [class]="'px-3 py-1 text-xs font-semibold rounded-full ' + (candidate.stage === 'Interview' ? 'bg-yellow-100 text-yellow-800' : 'bg-purple-100 text-purple-800')">{{
+                  candidate.stage }}</span>
+              </div>
+              <div class="grid grid-cols-2 gap-4 mt-3 text-sm text-gray-600 border-t border-slate-100 pt-3">
+                <div class="flex items-center"><svg class="w-4 h-4 mr-2 text-slate-400" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z">
+                    </path>
+                  </svg>{{ candidate.phone }}</div>
+                <div class="flex items-center"><svg class="w-4 h-4 mr-2 text-slate-400" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>Applied {{ candidate.appliedDate }}</div>
+                <div class="flex items-center"><svg class="w-4 h-4 mr-2 text-slate-400" fill="none"
+                    stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z">
+                    </path>
+                  </svg>{{ candidate.experience }} years experience</div>
+                <div class="flex items-center text-orange-500"><svg class="w-4 h-4 mr-2" fill="currentColor"
+                    viewBox="0 0 20 20">
+                    <path
+                      d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                    </path>
+                  </svg><span class="font-semibold">{{ candidate.rating }} / 5.0</span></div>
+              </div>
+            </div>
           </div>
-          <div class="p-2 space-y-3 overflow-y-auto h-[calc(100%-4rem)]">
-            @for(candidate of candidatesByStage()[stage]; track candidate.id) {
-              <a [routerLink]="['/pipeline']" [queryParams]="{candidate: candidate.id}" class="block p-3 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-slate-200 cursor-pointer">
+        </div>
+
+        <!-- Skills -->
+        <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-800">Skills</h3>
+          <div class="flex flex-wrap gap-2 mt-4">
+            @for(skill of candidate.skills; track skill) {
+            <span class="px-3 py-1 text-sm font-medium text-blue-800 bg-blue-100 rounded-full">{{skill}}</span>
+            }
+          </div>
+        </div>
+
+        <!-- Tab Section -->
+        <div class="bg-white border border-slate-200 rounded-lg shadow-sm">
+          <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+              <button (click)="activeTab.set('notes')"
+                [class]="'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ' + (activeTab() === 'notes' ? 'border-slate-700 text-slate-800' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')">Notes</button>
+              <button (click)="activeTab.set('interviews')"
+                [class]="'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ' + (activeTab() === 'interviews' ? 'border-slate-700 text-slate-800' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')">Interviews</button>
+              <button (click)="activeTab.set('communications')"
+                [class]="'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ' + (activeTab() === 'communications' ? 'border-slate-700 text-slate-800' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')">Communications</button>
+            </nav>
+          </div>
+          <div class="p-6">
+            @switch (activeTab()) {
+            @case ('notes') {
+            <div class="space-y-4">
+              @if (candidate.notes && candidate.notes.length > 0) {
+              @for (note of candidate.notes; track note.id) {
+              <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
+                <p class="text-sm text-gray-700">{{ note.text }}</p>
+                <p class="text-xs text-gray-400 mt-1 text-right">{{ note.author }} • {{ note.date }}</p>
+              </div>
+              }
+              } @else {
+              <p class="text-sm text-gray-500">No notes yet.</p>
+              }
+              <div class="flex items-start space-x-3 pt-2">
+                <textarea [(ngModel)]="newNote" placeholder="Add a note about this candidate..." rows="2"
+                  class="block w-full px-3 py-2 mt-1 text-sm bg-slate-50 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
+                <button (click)="addNote()"
+                  class="px-4 py-2 mt-1 text-sm font-medium text-white bg-slate-800 rounded-lg hover:bg-slate-900">Add
+                  Note</button>
+              </div>
+            </div>
+            }
+            @case ('interviews') {
+            <div class="space-y-4">
+              @if (candidate.interviews && candidate.interviews.length > 0) {
+              @for (interview of candidate.interviews; track interview.id) {
+              <div class="p-4 bg-slate-50 rounded-lg border border-slate-200">
                 <div class="flex items-center justify-between">
-                  <div class="flex items-center">
-                    <img [src]="candidate.avatar" class="w-10 h-10 rounded-full" [alt]="candidate.name">
-                    <div class="ml-3">
-                      <p class="font-semibold text-sm text-gray-800">{{ candidate.name }}</p>
-                      <p class="text-xs text-gray-500">{{ candidate.experience }} years</p>
-                    </div>
-                  </div>
-                   <div class="flex items-center text-sm text-orange-400">
-                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                    <span class="ml-1 font-semibold">{{ candidate.rating }}</span>
-                  </div>
+                  <h4 class="font-semibold text-gray-800">{{interview.type}} Interview</h4>
+                  <span
+                    class="px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-800">{{interview.status}}</span>
                 </div>
-                <div class="mt-2.5 flex flex-wrap gap-1.5">
-                  @for(skill of candidate.skills.slice(0, 2); track skill) {
-                    <span class="px-2 py-1 text-xs font-medium text-blue-700 bg-blue-100 rounded-md">{{skill}}</span>
-                  }
-                  @if(candidate.skills.length > 2) {
-                    <span class="px-2 py-1 text-xs font-medium text-slate-600 bg-slate-200 rounded-md">+{{ candidate.skills.length - 2 }}</span>
-                  }
+                <div class="grid grid-cols-2 gap-x-4 gap-y-2 mt-3 text-sm text-gray-600">
+                  <p><span class="font-medium text-gray-500">Date:</span> {{interview.date}} {{interview.time}}</p>
+                  <p><span class="font-medium text-gray-500">Duration:</span> {{interview.duration}}</p>
+                  <p><span class="font-medium text-gray-500">Interviewer:</span> {{interview.interviewer}}</p>
+                  <div class="flex items-center text-orange-500"><svg class="w-4 h-4 mr-1" fill="currentColor"
+                      viewBox="0 0 20 20">
+                      <path
+                        d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z">
+                      </path>
+                    </svg><span class="font-semibold">{{ interview.rating }} / 5</span></div>
                 </div>
-              </a>
+              </div>
+              }
+              } @else {
+              <div class="text-center py-8">
+                <p class="text-sm text-gray-500">No interviews scheduled yet.</p>
+                <button (click)="showScheduleInterviewModal.set(true)"
+                  class="mt-2 px-3 py-1.5 text-sm font-medium text-white bg-slate-700 rounded-md hover:bg-slate-800">Schedule
+                  Interview</button>
+              </div>
+              }
+            </div>
             }
-            @if((candidatesByStage()[stage] || []).length === 0) {
-              <div class="flex items-center justify-center h-24 text-sm text-gray-500">No candidates in this stage.</div>
+            @case ('communications') {
+            <div class="text-center py-8">
+              <p class="text-sm text-gray-500">No communications yet.</p>
+              <button (click)="showSendEmailModal.set(true)"
+                class="mt-2 px-3 py-1.5 text-sm font-medium text-white bg-slate-700 rounded-md hover:bg-slate-800">Send
+                Email</button>
+            </div>
             }
-          </div>
-        </div>
-      }
-    </div>
-  } @else if(selectedCandidate(); as candidate) {
-    <div class="space-y-6">
-        <header>
-            <button (click)="goBackToList()" class="flex items-center text-sm font-medium text-gray-500 hover:text-gray-700 mb-4">
-                <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                Back to Pipeline
-            </button>
-            <div class="flex flex-wrap items-center justify-between gap-4">
-              <div>
-                <h1 class="text-3xl font-bold text-gray-800">{{ candidate.name }}</h1>
-                <p class="mt-1 text-gray-500">Applied for {{ selectedJob()?.title }}</p>
-              </div>
-              <div class="flex items-center space-x-2">
-                <button class="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200">Reject</button>
-                <button (click)="showSendEmailModal.set(true)" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Send Email</button>
-                <button (click)="showScheduleInterviewModal.set(true)" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">Schedule Interview</button>
-                <button (click)="moveStage()" class="px-4 py-2 text-sm font-medium text-white bg-slate-800 rounded-lg hover:bg-slate-900">Move to Next Stage</button>
-              </div>
-            </div>
-        </header>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div class="lg:col-span-2 space-y-6">
-            <!-- Candidate Info -->
-            <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
-              <div class="flex flex-col sm:flex-row sm:items-center">
-                  <img [src]="candidate.avatar" class="w-20 h-20 rounded-full" [alt]="candidate.name">
-                  <div class="ml-0 mt-4 sm:mt-0 sm:ml-6 flex-grow">
-                      <div class="flex items-center justify-between">
-                        <div>
-                          <h3 class="text-xl font-bold text-gray-800">{{ candidate.name }}</h3>
-                          <p class="text-sm text-gray-500">{{ candidate.email }}</p>
-                        </div>
-                        <span [class]="'px-3 py-1 text-xs font-semibold rounded-full ' + (candidate.stage === 'Interview' ? 'bg-yellow-100 text-yellow-800' : 'bg-purple-100 text-purple-800')">{{ candidate.stage }}</span>
-                      </div>
-                      <div class="grid grid-cols-2 gap-4 mt-3 text-sm text-gray-600 border-t border-slate-100 pt-3">
-                        <div class="flex items-center"><svg class="w-4 h-4 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>{{ candidate.phone }}</div>
-                        <div class="flex items-center"><svg class="w-4 h-4 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>Applied {{ candidate.appliedDate }}</div>
-                        <div class="flex items-center"><svg class="w-4 h-4 mr-2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>{{ candidate.experience }} years experience</div>
-                        <div class="flex items-center text-orange-500"><svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg><span class="font-semibold">{{ candidate.rating }} / 5.0</span></div>
-                      </div>
-                  </div>
-              </div>
-            </div>
-
-            <!-- Skills -->
-            <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
-                <h3 class="text-lg font-semibold text-gray-800">Skills</h3>
-                <div class="flex flex-wrap gap-2 mt-4">
-                    @for(skill of candidate.skills; track skill) {
-                        <span class="px-3 py-1 text-sm font-medium text-blue-800 bg-blue-100 rounded-full">{{skill}}</span>
-                    }
-                </div>
-            </div>
-
-            <!-- Tab Section -->
-            <div class="bg-white border border-slate-200 rounded-lg shadow-sm">
-              <div class="border-b border-gray-200">
-                <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
-                  <button (click)="activeTab.set('notes')" [class]="'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ' + (activeTab() === 'notes' ? 'border-slate-700 text-slate-800' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')">Notes</button>
-                  <button (click)="activeTab.set('interviews')" [class]="'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ' + (activeTab() === 'interviews' ? 'border-slate-700 text-slate-800' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')">Interviews</button>
-                  <button (click)="activeTab.set('communications')" [class]="'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm ' + (activeTab() === 'communications' ? 'border-slate-700 text-slate-800' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')">Communications</button>
-                </nav>
-              </div>
-              <div class="p-6">
-                @switch (activeTab()) {
-                  @case ('notes') {
-                    <div class="space-y-4">
-                      @if (candidate.notes && candidate.notes.length > 0) {
-                        @for (note of candidate.notes; track note.id) {
-                          <div class="p-3 bg-slate-50 rounded-lg border border-slate-200">
-                            <p class="text-sm text-gray-700">{{ note.text }}</p>
-                            <p class="text-xs text-gray-400 mt-1 text-right">{{ note.author }} • {{ note.date }}</p>
-                          </div>
-                        }
-                      } @else {
-                        <p class="text-sm text-gray-500">No notes yet.</p>
-                      }
-                      <div class="flex items-start space-x-3 pt-2">
-                        <textarea [(ngModel)]="newNote" placeholder="Add a note about this candidate..." rows="2" class="block w-full px-3 py-2 mt-1 text-sm bg-slate-50 border border-slate-200 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
-                        <button (click)="addNote()" class="px-4 py-2 mt-1 text-sm font-medium text-white bg-slate-800 rounded-lg hover:bg-slate-900">Add Note</button>
-                      </div>
-                    </div>
-                  }
-                  @case ('interviews') {
-                    <div class="space-y-4">
-                       @if (candidate.interviews && candidate.interviews.length > 0) {
-                        @for (interview of candidate.interviews; track interview.id) {
-                          <div class="p-4 bg-slate-50 rounded-lg border border-slate-200">
-                              <div class="flex items-center justify-between">
-                                <h4 class="font-semibold text-gray-800">{{interview.type}} Interview</h4>
-                                <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-800">{{interview.status}}</span>
-                              </div>
-                              <div class="grid grid-cols-2 gap-x-4 gap-y-2 mt-3 text-sm text-gray-600">
-                                <p><span class="font-medium text-gray-500">Date:</span> {{interview.date}} {{interview.time}}</p>
-                                <p><span class="font-medium text-gray-500">Duration:</span> {{interview.duration}}</p>
-                                <p><span class="font-medium text-gray-500">Interviewer:</span> {{interview.interviewer}}</p>
-                                <div class="flex items-center text-orange-500"><svg class="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg><span class="font-semibold">{{ interview.rating }} / 5</span></div>
-                              </div>
-                          </div>
-                        }
-                      } @else {
-                        <div class="text-center py-8">
-                          <p class="text-sm text-gray-500">No interviews scheduled yet.</p>
-                          <button (click)="showScheduleInterviewModal.set(true)" class="mt-2 px-3 py-1.5 text-sm font-medium text-white bg-slate-700 rounded-md hover:bg-slate-800">Schedule Interview</button>
-                        </div>
-                      }
-                    </div>
-                  }
-                  @case ('communications') {
-                    <div class="text-center py-8">
-                      <p class="text-sm text-gray-500">No communications yet.</p>
-                      <button (click)="showSendEmailModal.set(true)" class="mt-2 px-3 py-1.5 text-sm font-medium text-white bg-slate-700 rounded-md hover:bg-slate-800">Send Email</button>
-                    </div>
-                  }
-                }
-              </div>
-            </div>
-
-          </div>
-          <div class="space-y-6">
-            <!-- Resume -->
-            <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
-                <h3 class="text-lg font-semibold text-gray-800">Resume</h3>
-                <div class="flex items-center mt-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
-                  <svg class="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                  <div class="ml-3 flex-grow">
-                      <p class="text-sm font-medium text-gray-700">{{candidate.resumeUrl}}</p>
-                  </div>
-                  <a [href]="candidate.resumeUrl" download class="p-2 text-slate-500 hover:bg-slate-200 rounded-full">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                  </a>
-                </div>
-            </div>
-            <!-- Application Timeline -->
-            <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
-              <h3 class="text-lg font-semibold text-gray-800">Application Timeline</h3>
-              <div class="mt-6 flow-root">
-                <ul class="-mb-8">
-                  @for(item of applicationTimeline(); track item.name; let isLast = $last) {
-                    <li>
-                      <div class="relative pb-8">
-                        @if(!isLast) {
-                          <span class="absolute top-4 left-4 -ml-px h-full w-0.5" [class]="item.status === 'completed' ? 'bg-green-500' : 'bg-gray-200'"></span>
-                        }
-                        <div class="relative flex space-x-3">
-                          <div>
-                            <span class="h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white" [class]="item.status === 'pending' ? 'bg-gray-300' : (item.status === 'current' ? 'border-2 border-green-500 bg-white' : 'bg-green-500')">
-                              @if (item.status === 'completed') {
-                                <svg class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.052-.143z" clip-rule="evenodd" /></svg>
-                              } @else if (item.status === 'current') {
-                                 <span class="h-2.5 w-2.5 rounded-full bg-green-500"></span>
-                              }
-                            </span>
-                          </div>
-                          <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
-                            <div>
-                              <p class="text-sm" [class]="item.status === 'pending' ? 'text-gray-500' : 'text-gray-900 font-medium'">{{ item.name }}</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </li>
-                  }
-                </ul>
-              </div>
-            </div>
-             <!-- Applied Position -->
-            @if(selectedJob(); as job) {
-            <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
-              <h3 class="text-lg font-semibold text-gray-800">Applied Position</h3>
-                <div class="mt-4">
-                  <p class="font-semibold text-gray-700">{{job.title}}</p>
-                  <p class="text-sm text-gray-500">{{job.department}}</p>
-                  <p class="text-sm text-gray-500">{{job.location}}</p>
-                  <button [routerLink]="['/jobs']" class="mt-4 w-full px-4 py-2 text-sm font-medium text-center text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200">View Job Details</button>
-                </div>
-            </div>
             }
           </div>
         </div>
-    </div>
 
-    <!-- Send Email Modal -->
-    @if(showSendEmailModal()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60" (click)="showSendEmailModal.set(false)">
-        <div class="w-full max-w-lg p-8 bg-white rounded-2xl shadow-2xl" (click)="$event.stopPropagation()">
-            <div class="flex items-center justify-between">
-              <div>
-                <h2 class="text-xl font-bold text-gray-800">Send Email</h2>
-                <p class="mt-1 text-sm text-gray-500">Send an email to {{ candidate.name }}</p>
-              </div>
-              <button (click)="showSendEmailModal.set(false)" class="text-gray-400 hover:text-gray-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-              </button>
-            </div>
-            <form class="mt-6 space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700">Email Template</label>
-                <select class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                  <option>Custom Email</option><option>Interview Invitation</option><option>Offer Letter</option><option>Application Update</option>
-                </select>
-              </div>
-              <div>
-                  <label class="block text-sm font-medium text-gray-700">To</label>
-                  <input type="email" [value]="candidate.email" disabled class="block w-full px-3 py-2 mt-1 bg-gray-100 border-gray-300 rounded-md shadow-sm sm:text-sm">
-              </div>
-               <div>
-                  <label class="block text-sm font-medium text-gray-700">Subject</label>
-                  <input type="text" placeholder="Email subject" class="block w-full px-3 py-2 mt-1 border-gray-300 rounded-md shadow-sm sm:text-sm">
-              </div>
-              <div>
-                  <label class="block text-sm font-medium text-gray-700">Message</label>
-                  <textarea rows="5" placeholder="Write your email message..." class="block w-full px-3 py-2 mt-1 border-gray-300 rounded-md shadow-sm sm:text-sm"></textarea>
-              </div>
-              <div class="flex justify-end pt-4 space-x-3">
-                <button type="button" (click)="showSendEmailModal.set(false)" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50">Cancel</button>
-                <button type="submit" (click)="showToast('Email Sent', 'Email has been sent to ' + candidate.name); showSendEmailModal.set(false)" class="px-5 py-2.5 text-sm font-medium text-white bg-slate-800 rounded-lg shadow-sm hover:bg-slate-900">Send Email</button>
-              </div>
-            </form>
-        </div>
       </div>
-    }
-
-    <!-- Schedule Interview Modal -->
-     @if(showScheduleInterviewModal()) {
-      <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60" (click)="showScheduleInterviewModal.set(false)">
-        <div class="w-full max-w-lg p-8 bg-white rounded-2xl shadow-2xl" (click)="$event.stopPropagation()">
-            <div class="flex items-center justify-between">
-              <div>
-                <h2 class="text-xl font-bold text-gray-800">Schedule Interview</h2>
-                <p class="mt-1 text-sm text-gray-500">Schedule an interview with {{ candidate.name }}</p>
-              </div>
-              <button (click)="showScheduleInterviewModal.set(false)" class="text-gray-400 hover:text-gray-600">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-              </button>
+      <div class="space-y-6">
+        <!-- Resume -->
+        <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-800">Resume</h3>
+          <div class="flex items-center mt-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
+            <svg class="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+              </path>
+            </svg>
+            <div class="ml-3 flex-grow">
+              <p class="text-sm font-medium text-gray-700">{{candidate.resumeUrl}}</p>
             </div>
-            <form class="mt-6 space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700">Interview Type</label>
-                <select class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                  <option>Technical</option><option>Screening</option><option>HR</option><option>Final</option>
-                </select>
-              </div>
-              <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Date</label>
-                    <input type="date" class="block w-full px-3 py-2 mt-1 border-gray-300 rounded-md shadow-sm sm:text-sm">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700">Time</label>
-                    <input type="time" class="block w-full px-3 py-2 mt-1 border-gray-300 rounded-md shadow-sm sm:text-sm">
-                </div>
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700">Duration</label>
-                <select class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
-                  <option>30 minutes</option><option>45 minutes</option><option>1 hour</option><option>1.5 hours</option>
-                </select>
-              </div>
-               <div>
-                  <label class="block text-sm font-medium text-gray-700">Interviewer</label>
-                  <input type="text" placeholder="Enter interviewer name" class="block w-full px-3 py-2 mt-1 border-gray-300 rounded-md shadow-sm sm:text-sm">
-              </div>
-              <div class="flex justify-end pt-4 space-x-3">
-                <button type="button" (click)="showScheduleInterviewModal.set(false)" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50">Cancel</button>
-                <button type="submit" (click)="showToast('Interview Scheduled', 'An interview has been scheduled with ' + candidate.name); showScheduleInterviewModal.set(false)" class="px-5 py-2.5 text-sm font-medium text-white bg-slate-800 rounded-lg shadow-sm hover:bg-slate-900">Schedule Interview</button>
-              </div>
-            </form>
+            <a [href]="candidate.resumeUrl" download class="p-2 text-slate-500 hover:bg-slate-200 rounded-full">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+              </svg>
+            </a>
+          </div>
         </div>
+        <!-- Application Timeline -->
+        <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-800">Application Timeline</h3>
+          <div class="mt-6 flow-root">
+            <ul class="-mb-8">
+              @for(item of applicationTimeline(); track item.name; let isLast = $last) {
+              <li>
+                <div class="relative pb-8">
+                  @if(!isLast) {
+                  <span class="absolute top-4 left-4 -ml-px h-full w-0.5"
+                    [class]="item.status === 'completed' ? 'bg-green-500' : 'bg-gray-200'"></span>
+                  }
+                  <div class="relative flex space-x-3">
+                    <div>
+                      <span class="h-8 w-8 rounded-full flex items-center justify-center ring-8 ring-white"
+                        [class]="item.status === 'pending' ? 'bg-gray-300' : (item.status === 'current' ? 'border-2 border-green-500 bg-white' : 'bg-green-500')">
+                        @if (item.status === 'completed') {
+                        <svg class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                          <path fill-rule="evenodd"
+                            d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.052-.143z"
+                            clip-rule="evenodd" />
+                        </svg>
+                        } @else if (item.status === 'current') {
+                        <span class="h-2.5 w-2.5 rounded-full bg-green-500"></span>
+                        }
+                      </span>
+                    </div>
+                    <div class="flex min-w-0 flex-1 justify-between space-x-4 pt-1.5">
+                      <div>
+                        <p class="text-sm"
+                          [class]="item.status === 'pending' ? 'text-gray-500' : 'text-gray-900 font-medium'">{{
+                          item.name }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+              }
+            </ul>
+          </div>
+        </div>
+        <!-- Applied Position -->
+        @if(selectedJob(); as job) {
+        <div class="p-6 bg-white border border-slate-200 rounded-lg shadow-sm">
+          <h3 class="text-lg font-semibold text-gray-800">Applied Position</h3>
+          <div class="mt-4">
+            <p class="font-semibold text-gray-700">{{job.title}}</p>
+            <p class="text-sm text-gray-500">{{job.department}}</p>
+            <p class="text-sm text-gray-500">{{job.location}}</p>
+            <button [routerLink]="['/jobs']"
+              class="mt-4 w-full px-4 py-2 text-sm font-medium text-center text-slate-700 bg-slate-100 rounded-md hover:bg-slate-200">View
+              Job Details</button>
+          </div>
+        </div>
+        }
       </div>
-    }
+    </div>
+  </div>
+
+  <!-- Send Email Modal -->
+  @if(showSendEmailModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60" (click)="showSendEmailModal.set(false)">
+    <div class="w-full max-w-lg p-8 bg-white rounded-2xl shadow-2xl" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Send Email</h2>
+          <p class="mt-1 text-sm text-gray-500">Send an email to {{ candidate.name }}</p>
+        </div>
+        <button (click)="showSendEmailModal.set(false)" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <form class="mt-6 space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Email Template</label>
+          <select
+            class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option>Custom Email</option>
+            <option>Interview Invitation</option>
+            <option>Offer Letter</option>
+            <option>Application Update</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">To</label>
+          <input type="email" [value]="candidate.email" disabled
+            class="block w-full px-3 py-2 mt-1 bg-gray-100 border-gray-300 rounded-md shadow-sm sm:text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Subject</label>
+          <input type="text" placeholder="Email subject"
+            class="block w-full px-3 py-2 mt-1 border-gray-300 rounded-md shadow-sm sm:text-sm">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Message</label>
+          <textarea rows="5" placeholder="Write your email message..."
+            class="block w-full px-3 py-2 mt-1 border-gray-300 rounded-md shadow-sm sm:text-sm"></textarea>
+        </div>
+        <div class="flex justify-end pt-4 space-x-3">
+          <button type="button" (click)="showSendEmailModal.set(false)"
+            class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50">Cancel</button>
+          <button type="submit"
+            (click)="showToast('Email Sent', 'Email has been sent to ' + candidate.name); showSendEmailModal.set(false)"
+            class="px-5 py-2.5 text-sm font-medium text-white bg-slate-800 rounded-lg shadow-sm hover:bg-slate-900">Send
+            Email</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  }
+
+  <!-- Schedule Interview Modal -->
+  @if(showScheduleInterviewModal()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+    (click)="showScheduleInterviewModal.set(false)">
+    <div class="w-full max-w-lg p-8 bg-white rounded-2xl shadow-2xl" (click)="$event.stopPropagation()">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Schedule Interview</h2>
+          <p class="mt-1 text-sm text-gray-500">Schedule an interview with {{ candidate.name }}</p>
+        </div>
+        <button (click)="showScheduleInterviewModal.set(false)" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      <form class="mt-6 space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Interview Type</label>
+          <select
+            class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option>Technical</option>
+            <option>Screening</option>
+            <option>HR</option>
+            <option>Final</option>
+          </select>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Date</label>
+            <input type="date" class="block w-full px-3 py-2 mt-1 border-gray-300 rounded-md shadow-sm sm:text-sm">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Time</label>
+            <input type="time" class="block w-full px-3 py-2 mt-1 border-gray-300 rounded-md shadow-sm sm:text-sm">
+          </div>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Duration</label>
+          <select
+            class="block w-full px-3 py-2 mt-1 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            <option>30 minutes</option>
+            <option>45 minutes</option>
+            <option>1 hour</option>
+            <option>1.5 hours</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Interviewer</label>
+          <input type="text" placeholder="Enter interviewer name"
+            class="block w-full px-3 py-2 mt-1 border-gray-300 rounded-md shadow-sm sm:text-sm">
+        </div>
+        <div class="flex justify-end pt-4 space-x-3">
+          <button type="button" (click)="showScheduleInterviewModal.set(false)"
+            class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg shadow-sm hover:bg-gray-50">Cancel</button>
+          <button type="submit"
+            (click)="showToast('Interview Scheduled', 'An interview has been scheduled with ' + candidate.name); showScheduleInterviewModal.set(false)"
+            class="px-5 py-2.5 text-sm font-medium text-white bg-slate-800 rounded-lg shadow-sm hover:bg-slate-900">Schedule
+            Interview</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  }
 
   }
 </div>
 
 @if (toast(); as toast) {
-  <div class="fixed bottom-6 right-6 bg-slate-900 text-white py-3 px-5 rounded-lg shadow-2xl transition-opacity duration-300 animate-fade-in-up">
-    <p class="font-semibold">{{ toast.message }}</p>
-    <p class="text-sm text-slate-300">{{ toast.details }}</p>
-  </div>
+<div
+  class="fixed bottom-6 right-6 bg-slate-900 text-white py-3 px-5 rounded-lg shadow-2xl transition-opacity duration-300 animate-fade-in-up">
+  <p class="font-semibold">{{ toast.message }}</p>
+  <p class="text-sm text-slate-300">{{ toast.details }}</p>
+</div>
 }
 <style>
   @keyframes fade-in-up {
@@ -358,11 +460,13 @@
       opacity: 0;
       transform: translateY(10px);
     }
+
     to {
       opacity: 1;
       transform: translateY(0);
     }
   }
+
   .animate-fade-in-up {
     animation: fade-in-up 0.5s ease-out forwards;
   }

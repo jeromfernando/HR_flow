@@ -30,18 +30,21 @@ export interface Candidate {
   id: number;
   name: string;
   email: string;
-  phone?: string;
   jobId: number;
-  stage: CandidateStage;
-  appliedDate?: string;
+  stage: CandidateStage; // 'Applied' | 'Screening' | ...
   avatar: string;
   experience: number;
   skills: string[];
   rating: number;
-  resumeUrl?: string;
-  notes?: Note[];
-  interviews?: Interview[];
-  communications?: Communication[];
+  appliedDate: string;
+  phone: string;
+  resumeUrl: string; // Used for CV
+  cvUrl?: string; // Optional specific CV if different from resumeUrl, but let's use resumeUrl as primary CV link.
+  // Actually, resumeUrl already exists in my previous viewed file of DataService mock data!
+  // Let's verify models.ts to be sure.
+  notes: Note[];
+  interviews: Interview[];
+  communications: Communication[];
 }
 
 export interface Job {
@@ -142,7 +145,7 @@ export interface Gig {
   department: string;
   duration: string;
   skills: string[];
-  status: 'Open' | 'In Progress' | 'Closed';
+  status: 'Open' | 'In Progress' | 'Closed' | 'Draft';
   applicants: number;
   description?: string;
   startDate?: string;

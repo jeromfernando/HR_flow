@@ -31,10 +31,10 @@ export class CandidatePipelineComponent implements OnInit {
     Hired: 'bg-green-500',
     Rejected: 'bg-red-500',
   };
-  
+
   searchTerm = signal('');
   selectedJobId = signal<number | 'all'>('all');
-  
+
   // Modals and notifications
   showSendEmailModal = signal(false);
   showScheduleInterviewModal = signal(false);
@@ -61,12 +61,12 @@ export class CandidatePipelineComponent implements OnInit {
 
     if (!term) return candidatesForJob;
 
-    return candidatesForJob.filter(c => 
+    return candidatesForJob.filter(c =>
       c.name.toLowerCase().includes(term) ||
       c.skills.some(s => s.toLowerCase().includes(term))
     );
   });
-  
+
   candidatesByStage = computed(() => {
     const candidates = this.filteredCandidates();
     const stageMap = this.stages.reduce((acc, stage) => {
@@ -79,7 +79,7 @@ export class CandidatePipelineComponent implements OnInit {
         stageMap[candidate.stage].push(candidate);
       }
     }
-    
+
     return stageMap;
   });
 
@@ -111,17 +111,13 @@ export class CandidatePipelineComponent implements OnInit {
   }
 
   selectCandidate(candidateId: number) {
-    const candidate = this.dataService.candidates().find(c => c.id === candidateId);
-    if (candidate) {
-      this.selectedCandidate.set(candidate);
-      this.viewMode.set('detail');
-    }
+    this.router.navigate(['/admin/candidate', candidateId]);
   }
 
   goBackToList() {
     this.viewMode.set('list');
     this.selectedCandidate.set(null);
-    this.router.navigate([], { 
+    this.router.navigate([], {
       relativeTo: this.route,
       queryParams: { candidate: null },
       queryParamsHandling: 'merge'
@@ -142,7 +138,7 @@ export class CandidatePipelineComponent implements OnInit {
   moveStage() {
     const candidate = this.selectedCandidate();
     if (!candidate) return;
-    
+
     const currentIndex = this.stages.indexOf(candidate.stage);
     if (currentIndex < this.stages.length - 1) {
       const nextStage = this.stages[currentIndex + 1];

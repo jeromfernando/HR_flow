@@ -31,7 +31,7 @@ export class CreateJobComponent {
     postType: 'External',
     skills: [],
   });
-  
+
   skillsInput = signal('');
 
   departments = ['Engineering', 'Product', 'Design', 'Human Resources', 'Sales', 'Marketing'];
@@ -61,9 +61,9 @@ export class CreateJobComponent {
       skills: job.skills.filter(skill => skill !== skillToRemove)
     }));
   }
-  
+
   saveJob(status: 'Draft' | 'Published') {
-    const jobData = { ...this.newJob(), status };
+    const jobData = { ...this.newJob(), status, applicants: 0 };
     if (jobData.title && jobData.department) {
       this.dataService.addJob(jobData);
       this.router.navigate(['/jobs']);
